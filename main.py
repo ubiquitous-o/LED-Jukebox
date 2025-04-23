@@ -1,8 +1,9 @@
 import sys
 from PIL import Image
-import config
-import spotify
 import requests
+
+from modules import config
+from modules import spotify
 
 track_id = sys.argv[1]
 event = sys.argv[2]

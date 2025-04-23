@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import config
+from modules import config
 
 # returns an image url of the album cover
 def get_album_url(track_id):
