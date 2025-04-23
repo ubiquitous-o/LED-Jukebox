@@ -1,5 +1,4 @@
 #!/bin/bash
-if [ $PLAYER_EVENT = "playing" ] || [ $PLAYER_EVENT = "stopped" ] || [ $PLAYER_EVENT = "paused" ]; then
+echo $PLAYER_EVENT
 source /usr/local/bin/led-jukebox/venv/bin/activate
-python /usr/local/bin/led-jukebox/main.py $TRACK_ID $PLAYER_EVENT
-fi
+python /usr/local/bin/led-jukebox/main.py "$TRACK_ID" "$PLAYER_EVENT"

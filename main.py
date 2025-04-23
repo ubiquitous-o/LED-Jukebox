@@ -8,8 +8,6 @@ from modules import spotify
 track_id = sys.argv[1]
 event = sys.argv[2]
 
-print("Event: " + event + "-called")
-
 if event == "playing":
     image_url = spotify.get_album_url(track_id)
     print(track_id)
@@ -27,3 +25,9 @@ elif event == "stopped" or event == "paused":
     # pixoo.draw_filled_rectangle((0, 0), (63, 63), rgb=(0, 0, 0))
     # pixoo.push()
     print("draw blackscreen")
+
+elif event == "session_connected":
+    print("session connected")
+
+elif event == "session_disconnected":
+    print("session disconnected")
