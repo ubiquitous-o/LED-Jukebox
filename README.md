@@ -17,6 +17,12 @@
 1. Install Raspotify
     - Set `handler.sh` as a Librespot Event Script
     - https://github.com/dtcooper/raspotify/wiki/How-To:-Listen-To-Librespot-Events
-2. Install rpi-rgb-led-matrix ([python bindings](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python))
-
+2. Install rpi-rgb-led-matrix
+    - Refer to this guide to install the Python bindings: [python bindings](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python)
+    - Install `rpi-rgb-led-matrix` into your venv:
+        ```bash
+        source venv/bin/activate
+        cd rpi-rgb-led-matrix/bindings/python
+        pip install .
+        ```
 
