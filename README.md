@@ -7,9 +7,10 @@
 - [8Ω 10W Speaker](https://akizukidenshi.com/catalog/g/g116600/) x4
 - [10W+10W Stereo USB DAC Amplifier](https://akizukidenshi.com/catalog/g/g102404/)
 - USB microphone
+    - I used the cheapest one I had like [this](https://www.buffalo.jp/product/detail/bshsm05bk.html). I disassembled it and used only the internal components.
 
 ## Dependencies
-- [Raspotify](https://github.com/dtcooper/raspotify?tab=readme-ov-file): Streams Spotify music using an open-source client for Spotify Connect on Raspberry Pi.
+- [Raspotify](https://github.com/dtcooper/raspotify): Streams Spotify music using an open-source client for Spotify Connect on Raspberry Pi.
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
 
 ## Setup
