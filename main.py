@@ -13,7 +13,6 @@ def main():
     
     if not track_id or not event:
         print("Usage: python main.py <track_id> <event>")
-        sys.exit(1)
     
     # FlaskサーバーのURL
     flask_server_url = "http://localhost:5000/display"
@@ -21,7 +20,7 @@ def main():
     # JSONデータの初期化
     data = {"event": event}
     
-    if event == "playing":
+    if event == "loading" or event == "track_changed" or event == "playing":
         try:
             # Spotifyからアルバムアートを取得
             image_url = spotify.get_album_url(track_id)
@@ -48,7 +47,6 @@ def main():
             
         except Exception as e:
             print(f"Error fetching album art: {e}")
-            sys.exit(1)
     
     elif event == "stopped" or event == "paused":
         print("draw blackscreen")
@@ -64,9 +62,7 @@ def main():
         response = requests.post(flask_server_url, json=data)
         print(f"Server response: {response.status_code} - {response.text}")
     except Exception as e:
-        print(f"Error sending data to server: {e}")
-        sys.exit(1)
-
+        print(f"Error sending data to server: {e}")   
 
 if __name__ == "__main__":
     main()
