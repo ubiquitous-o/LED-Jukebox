@@ -11,3 +11,11 @@
 ## Dependencies
 - [Raspotify](https://github.com/dtcooper/raspotify?tab=readme-ov-file): Streams Spotify music using an open-source client for Spotify Connect on Raspberry Pi.
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
+
+## Setup
+1. Install Raspotify
+    - Set `handler.sh` as a Librespot Event Script
+    - https://github.com/dtcooper/raspotify/wiki/How-To:-Listen-To-Librespot-Events
+2. Install rpi-rgb-led-matrix ([python bindings](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python))
+
+
