@@ -47,7 +47,7 @@ def display_image():
         # event情報を取得
         event = data.get('event')
         
-        if event == "loading" or event == "track_changed" or event == "playing":
+        if event == "loading" or event == "track_changed":
             # Base64エンコードされた画像データを取得
             image_data = data.get('image')
             if not image_data:
@@ -88,7 +88,7 @@ def display_image():
             
             return jsonify({"status": "success", "message": "Image displayed"}), 200
             
-        elif event == "stopped" or event == "paused":
+        elif event == "stopped":
             # マトリックスをクリア（黒画面表示）
             matrix.Clear()
             black_image = Image.new('RGB', (matrix.width, matrix.height), color=(0, 0, 0))

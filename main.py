@@ -20,7 +20,7 @@ def main():
     # JSONデータの初期化
     data = {"event": event}
     
-    if event == "loading" or event == "track_changed" or event == "playing":
+    if event == "loading" or event == "track_changed":
         try:
             # Spotifyからアルバムアートを取得
             image_url = spotify.get_album_url(track_id)
