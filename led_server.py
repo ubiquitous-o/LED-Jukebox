@@ -14,8 +14,11 @@ options = RGBMatrixOptions()
 options.rows = 64
 options.cols = 64
 options.chain_length = 5
+options.parallel = 1
+options.brightness = 70
+options.limit_refresh_rate_hz = 80
 options.gpio_slowdown = 5
-options.hardware_mapping = 'regular'  # Adafruit HATを使用している場合: 'adafruit-hat'
+options.hardware_mapping = 'regular'
 
 # マトリックスの初期化
 try:
@@ -47,7 +50,7 @@ def display_image():
         # event情報を取得
         event = data.get('event')
         
-        if event == "loading" or event == "track_changed":
+        if event == "loading":
             # Base64エンコードされた画像データを取得
             image_data = data.get('image')
             if not image_data:
