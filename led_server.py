@@ -9,18 +9,18 @@ import sys
 
 app = Flask(__name__)
 
-# LEDマトリックスの設定
 options = RGBMatrixOptions()
 options.rows = 64
 options.cols = 64
 options.chain_length = 5
-options.parallel = 1
-options.brightness = 70
-options.limit_refresh_rate_hz = 80
+options.brightness = 80
 options.gpio_slowdown = 5
 options.hardware_mapping = 'regular'
 
-# マトリックスの初期化
+# options.show_refresh_rate = 1
+options.limit_refresh_rate_hz = 60
+framerate = 2 #30Hz animation in refresh_rate_hz = 60
+
 try:
     matrix = RGBMatrix(options=options)
     print("LED Matrix initialized successfully")
@@ -34,10 +34,32 @@ display_thread = None
 stop_display = False
 
 def display_image_loop():
-    """バックグラウンドスレッドで画像表示を維持するための関数"""
-    global stop_display
+    """バックグラウンドスレッドで画像をスクロール表示するための関数"""
+    global stop_display, current_display
+    
+    if current_display is None:
+        return
+    
+    # ダブルバッファリング用のキャンバスを作成
+    double_buffer = matrix.CreateFrameCanvas()
+    
+    # 画像の幅と高さを取得
+    img_width, img_height = current_display.size
+    
+    # スクロール位置の初期化
+    xpos = 0
+    
+    # スクロール処理
     while not stop_display:
-        time.sleep(1)  # CPU使用率を下げるためのスリープ
+        # 位置を更新
+        xpos = (xpos + 1) % img_width
+        
+        # ダブルバッファに画像を描画（スクロール位置を考慮）
+        double_buffer.SetImage(current_display, -xpos)
+        double_buffer.SetImage(current_display, -xpos + img_width)
+        
+        # バッファを入れ替えて表示を更新
+        double_buffer = matrix.SwapOnVSync(double_buffer, framerate_fraction = framerate)
 
 @app.route('/display', methods=['POST'])
 def display_image():
@@ -50,7 +72,7 @@ def display_image():
         # event情報を取得
         event = data.get('event')
         
-        if event == "loading":
+        if event == "playing":
             # Base64エンコードされた画像データを取得
             image_data = data.get('image')
             if not image_data:
@@ -74,14 +96,13 @@ def display_image():
             # 以前の表示スレッドを停止
             if display_thread and display_thread.is_alive():
                 stop_display = True
-                display_thread.join()
+                display_thread.join(timeout=1.0)  # タイムアウト付きで待機
                 
-            # LEDマトリックスをクリア
+            # LEDマトリクスをクリア
             matrix.Clear()
             
-            # 新しい画像を表示
-            matrix.SetImage(concatenated_img.convert('RGB'))
-            current_display = concatenated_img
+            # 画像を保存
+            current_display = concatenated_img.convert('RGB')
             
             # 表示維持用の新しいスレッドを開始
             stop_display = False
@@ -89,9 +110,14 @@ def display_image():
             display_thread.daemon = True
             display_thread.start()
             
-            return jsonify({"status": "success", "message": "Image displayed"}), 200
+            return jsonify({"status": "success", "message": "Image displayed and scrolling"}), 200
             
-        elif event == "stopped":
+        elif event == "stopped" or event == "paused":
+            # スクロール停止
+            if display_thread and display_thread.is_alive():
+                stop_display = True
+                display_thread.join(timeout=1.0)
+            
             # マトリックスをクリア（黒画面表示）
             matrix.Clear()
             black_image = Image.new('RGB', (matrix.width, matrix.height), color=(0, 0, 0))
