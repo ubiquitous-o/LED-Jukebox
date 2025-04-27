@@ -44,18 +44,18 @@ def test_led_rotation():
     try:
         led_matrix.matrix.SetImage(result)
         time.sleep(3)
-        save_path = "test/"
-        result.save(os.path.join(save_path, "rotation_original.png"))
+        # save_path = "test/"
+        # result.save(os.path.join(save_path, "rotation_original.png"))
         # 回転エフェクト実行（X軸正方向）
         print("X軸正方向の回転エフェクトを適用します...")
         result = rotation_effect.apply_rotation(
             img,
             result,
             RotationAxis.X_INC,
-            max_angle=90,   # 90度まで回転
-            angle_step=1    # 1度ずつ回転
+            max_angle=90,
+            angle_step=5
         )
-        result.save(os.path.join(save_path, "rotation_x_inc.png"))
+        # result.save(os.path.join(save_path, "rotation_x_inc.png"))
 
         # 回転エフェクト実行（X軸負方向）
         print("X軸負方向の回転エフェクトを適用します...")
@@ -64,9 +64,9 @@ def test_led_rotation():
             result,
             RotationAxis.X_DEC,
             max_angle=90,
-            angle_step=1
+            angle_step=5
         )
-        result.save(os.path.join(save_path, "rotation_x_dec.png"))
+        # result.save(os.path.join(save_path, "rotation_x_dec.png"))
 
         # 回転エフェクト実行（Y軸正方向）
         print("Y軸正方向の回転エフェクトを適用します...")
@@ -74,10 +74,10 @@ def test_led_rotation():
             img, 
             result, 
             RotationAxis.Y_INC,
-            max_angle=90,   # 45度まで回転
-            angle_step=1    # 1度ずつ回転
+            max_angle=90,
+            angle_step=5
         )
-        result.save(os.path.join(save_path, "rotation_y_inc.png"))
+        # result.save(os.path.join(save_path, "rotation_y_inc.png"))
 
         # 回転エフェクト実行（Y軸負方向）
         print("Y軸負方向の回転エフェクトを適用します...")
@@ -86,9 +86,9 @@ def test_led_rotation():
             result, 
             RotationAxis.Y_DEC,
             max_angle=90,
-            angle_step=1
+            angle_step=5
         )
-        result.save(os.path.join(save_path, "rotation_y_dec.png"))
+        # result.save(os.path.join(save_path, "rotation_y_dec.png"))
 
         # 回転エフェクト実行（Z軸正方向）
         print("Z軸正方向の回転エフェクトを適用します...")
@@ -96,10 +96,10 @@ def test_led_rotation():
             img, 
             result, 
             RotationAxis.Z_INC,
-            max_angle=90,   # 45度まで回転
-            angle_step=1    # 1度ずつ回転
+            max_angle=90,
+            angle_step=5
         )
-        result.save(os.path.join(save_path, "rotation_z_inc.png"))
+        # result.save(os.path.join(save_path, "rotation_z_inc.png"))
 
         # 回転エフェクト実行（Z軸負方向）
         print("Z軸負方向の回転エフェクトを適用します...")
@@ -108,10 +108,10 @@ def test_led_rotation():
             result, 
             RotationAxis.Z_DEC,
             max_angle=90,
-            angle_step=1
+            angle_step=5
         )
         
-        result.save(os.path.join(save_path, "rotation_z_dec.png"))
+        # result.save(os.path.join(save_path, "rotation_z_dec.png"))
         print("すべての回転エフェクトが完了しました")
         
         # 最終結果を表示（少し表示を維持）
