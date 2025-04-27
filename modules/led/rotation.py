@@ -22,6 +22,7 @@ class LEDRotationEffect:
         self.led_matrix = led_matrix
         self.matrix = led_matrix.matrix
         self.framerate = led_matrix.framerate
+        self.max_angle = 0
     
     def apply_rotation(self, img, concat_img, rotation_axis, max_angle=90, angle_step=1):
         """
@@ -37,10 +38,18 @@ class LEDRotationEffect:
         Returns:
             PIL.Image: 回転効果適用後の最終画像
         """
+        self.max_angle = max_angle
         angle = 0
         # ダブルバッファリング用のキャンバスを作成
         double_buffer = self.matrix.CreateFrameCanvas()
-        scroll_img, rotate_img = self._get_rotation_img_vals(concat_img, img, rotation_axis)
+
+        img_0 = concat_img.crop((0, 0, img.width, img.height)) # top panel
+        img_1 = concat_img.crop((img.width, 0, img.width*2, img.height)) #side panel
+        img_2 = concat_img.crop((img.width*2, 0, img.width*3, img.height)) #side panel
+        img_3 = concat_img.crop((img.width*3, 0, img.width*4, img.height)) #side panel
+        img_4 = concat_img.crop((img.width*4, 0, img.width*5, img.height)) #side panel
+        img_5 = concat_img.crop((img.width*5, 0, img.width*6, img.height)) #bottom panel (not shown)
+        imgs = [img_0, img_1, img_2, img_3, img_4, img_5]
 
         # 回転処理
         while not self.led_matrix.stop_display and angle <= max_angle:
@@ -48,8 +57,8 @@ class LEDRotationEffect:
             double_buffer.Clear()
             
             # 現在の角度と次の角度での画像を生成
-            current_img = self._rotate_cube(img, scroll_img, rotate_img, angle, rotation_axis)
-            next_img = self._rotate_cube(img, scroll_img, rotate_img, angle + 1, rotation_axis)
+            current_img = self._rotate_cube(imgs, angle, rotation_axis)
+            next_img = self._rotate_cube(imgs, angle + 1, rotation_axis)
             
             # 画像を表示
             double_buffer.SetImage(current_img)
@@ -66,85 +75,185 @@ class LEDRotationEffect:
         
         return current_img
 
-    def _get_rotation_img_vals(self, concat_img, image, rotation_axis):
-        """回転用の画像値を取得する"""
-        if rotation_axis in [RotationAxis.X_INC, RotationAxis.X_DEC]:
-            scroll_img = concat_img.crop((image.width, 0, concat_img.width, concat_img.height))
-            rotate_img = concat_img.crop((0, 0, image.width, image.height))
-            return scroll_img, rotate_img
-        elif rotation_axis in [RotationAxis.Y_INC, RotationAxis.Y_DEC]:
-            scroll_img = concat_img.crop((image.width, 0, concat_img.width, concat_img.height))
-            rotate_img = concat_img.crop((0, 0, image.width, image.height))
-            return scroll_img, rotate_img
-        else:
-            print(f"サポートされていない回転軸: {rotation_axis}")
-            return None, None
+    def _create_scroll_img(self, source, target, offset, axis, invert_scroll=False, from_top=False):
+        if axis == RotationAxis.X_INC or axis == RotationAxis.X_DEC:
+            if from_top:
+                source = source.transpose(Image.FLIP_TOP_BOTTOM)
+                source = source.transpose(Image.FLIP_LEFT_RIGHT)
+            if invert_scroll:
+                cropped_img = source.crop((0, source.height-offset, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, target.width, target.height-offset))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (0, cropped_img.height))
+ 
+            else:
+                cropped_img = source.crop((0, offset, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, target.width, offset))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (0, cropped_img.height))
+            return result_scroll_img
 
-    def _rotate_cube(self, image, scroll_img, rotate_img, angle, rotation_axis):
-        """指定された軸に沿って画像を回転させる"""
-        final_render = Image.new('RGB', (image.width * 5, image.height))
+        elif axis == RotationAxis.Y_INC or axis == RotationAxis.Y_DEC:
+            if invert_scroll:
+                cropped_img = source.crop((offset, 0, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, offset, target.height))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (cropped_img.width, 0))
+            else:
+                cropped_img = source.crop((source.width - offset, 0, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, target.width - offset, target.height))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (cropped_img.width, 0))
+            return result_scroll_img
         
-        if rotation_axis == RotationAxis.Y_INC:
-            concatenated_img = Image.new('RGB', (image.width * 4, image.height))
-            
-            offset = int((angle / 360) * scroll_img.width)
-            cropped_img = scroll_img.crop((offset, 0, scroll_img.width, scroll_img.height))
-            ofsseted_img = scroll_img.crop((0, 0, offset, scroll_img.height))
-            concatenated_img.paste(cropped_img, (0, 0))
-            concatenated_img.paste(ofsseted_img, (cropped_img.width, 0))
+        elif axis == RotationAxis.Z_INC or axis == RotationAxis.Z_DEC:
+            if invert_scroll:
+                if from_top:
+                    source = source.transpose(Image.FLIP_TOP_BOTTOM)
+                    source = source.transpose(Image.FLIP_LEFT_RIGHT)
+                cropped_img = source.crop((0, source.height-offset, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, target.width, target.height-offset))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (0, cropped_img.height))
+ 
+            else:
+                cropped_img = source.crop((0, offset, source.width, source.height))
+                ofsseted_img = target.crop((0, 0, target.width, offset))
+                result_scroll_img = Image.new('RGB', (target.width, target.height))
+                result_scroll_img.paste(cropped_img, (0, 0))
+                result_scroll_img.paste(ofsseted_img, (0, cropped_img.height))
+            return result_scroll_img
 
-            rotated_img = rotate_img.rotate(-angle, resample=Image.BICUBIC)
-            final_render.paste(rotated_img, (0, 0))
-            final_render.paste(concatenated_img, (rotated_img.width, 0))
+
+    def _rotate_cube(self, imgs, angle, rotation_axis):
+        """指定された軸に沿って画像を回転させる"""
+        image = imgs[0]
+        final_render = Image.new('RGB', (image.width * 6, image.height))
+        offset = int((angle / self.max_angle) * image.height)
+        
+        if rotation_axis == RotationAxis.X_INC:
+            # scroll: 5 -> 4 -> 0 -> 2
+            # rotate: 1, 3
+            new_0_img = self._create_scroll_img(imgs[4], imgs[0], offset, rotation_axis, invert_scroll=False)
+            new_2_img = self._create_scroll_img(imgs[0], imgs[2], offset, rotation_axis, invert_scroll=True, from_top=True)
+            new_4_img = self._create_scroll_img(imgs[5], imgs[4], offset, rotation_axis, invert_scroll=False)
+            new_5_img = self._create_scroll_img(imgs[2], imgs[5], offset, rotation_axis, invert_scroll=True)
+            
+            new_1_img = imgs[1].rotate(-angle, resample=Image.BICUBIC)
+            new_3_img = imgs[3].rotate(angle, resample=Image.BICUBIC)
+
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
+
+            return final_render
+        
+        elif rotation_axis == RotationAxis.X_DEC:
+            # scroll: 2 -> 0 -> 4 -> 5
+            # rotate: 1, 3
+            new_0_img = self._create_scroll_img(imgs[2], imgs[0], offset, rotation_axis, invert_scroll=True)
+            new_2_img = self._create_scroll_img(imgs[5], imgs[2], offset, rotation_axis, invert_scroll=False)
+            new_4_img = self._create_scroll_img(imgs[0], imgs[4], offset, rotation_axis, invert_scroll=True)
+            new_5_img = self._create_scroll_img(imgs[4], imgs[5], offset, rotation_axis, invert_scroll=False)
+            
+            new_1_img = imgs[1].rotate(angle, resample=Image.BICUBIC)
+            new_3_img = imgs[3].rotate(-angle, resample=Image.BICUBIC)
+
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
+
             return final_render
 
+        elif rotation_axis == RotationAxis.Y_INC:
+            # scroll: 1 -> 2 -> 3 -> 4
+            # rotate: 0, 5
+            new_1_img = self._create_scroll_img(imgs[4], imgs[1], offset, rotation_axis, invert_scroll=True)
+            new_2_img = self._create_scroll_img(imgs[1], imgs[2], offset, rotation_axis, invert_scroll=True)
+            new_3_img = self._create_scroll_img(imgs[2], imgs[3], offset, rotation_axis, invert_scroll=True)
+            new_4_img = self._create_scroll_img(imgs[3], imgs[4], offset, rotation_axis, invert_scroll=True)
+            
+            new_0_img = imgs[0].rotate(-angle, resample=Image.BICUBIC)
+            new_5_img = imgs[5].rotate(angle, resample=Image.BICUBIC)
+
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
+
+            return final_render
         elif rotation_axis == RotationAxis.Y_DEC:
-            concatenated_img = Image.new('RGB', (image.width * 4, image.height))
+            # scroll: 4 -> 3 -> 2 -> 1
+            # rotate: 0, 5
+            new_1_img = self._create_scroll_img(imgs[2], imgs[1], offset, rotation_axis, invert_scroll=False)
+            new_2_img = self._create_scroll_img(imgs[1], imgs[2], offset, rotation_axis, invert_scroll=False)
+            new_3_img = self._create_scroll_img(imgs[2], imgs[3], offset, rotation_axis, invert_scroll=False)
+            new_4_img = self._create_scroll_img(imgs[3], imgs[4], offset, rotation_axis, invert_scroll=False)
             
-            offset = int((angle / 360) * scroll_img.width)
-            cropped_img = scroll_img.crop((scroll_img.width - offset, 0, scroll_img.width, scroll_img.height))
-            ofsseted_img = scroll_img.crop((0, 0, scroll_img.width - offset, scroll_img.height))
-            concatenated_img.paste(cropped_img, (0, 0))
-            concatenated_img.paste(ofsseted_img, (cropped_img.width, 0))
-
-            rotated_img = rotate_img.rotate(angle, resample=Image.BICUBIC)
-            final_render.paste(rotated_img, (0, 0))
-            final_render.paste(concatenated_img, (rotated_img.width, 0))
+            new_0_img = imgs[0].rotate(angle, resample=Image.BICUBIC)
+            new_5_img = imgs[5].rotate(-angle, resample=Image.BICUBIC)
+            
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
             return final_render
-            
 
+        elif rotation_axis == RotationAxis.Z_INC:
+            # scroll: 5 -> 1 -> 0 -> 3
+            # rotate: 2, 4
+            new_0_img = self._create_scroll_img(imgs[1], imgs[0], offset, rotation_axis, invert_scroll=False)
+            new_1_img = self._create_scroll_img(imgs[5], imgs[1], offset, rotation_axis, invert_scroll=True, from_top=True)
+            new_3_img = self._create_scroll_img(imgs[0], imgs[3], offset, rotation_axis, invert_scroll=False)
+            new_5_img = self._create_scroll_img(imgs[3], imgs[5], offset, rotation_axis, invert_scroll=False)
+            
+            new_2_img = imgs[2].rotate(-angle, resample=Image.BICUBIC)
+            new_4_img = imgs[4].rotate(angle, resample=Image.BICUBIC)
+
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
+
+            return final_render
+        
+        elif rotation_axis == RotationAxis.Z_DEC:
+            # scroll: 3 -> 0 -> 1 -> 5
+            # rotate: 2, 4
+            new_0_img = self._create_scroll_img(imgs[3], imgs[0], offset, rotation_axis, invert_scroll=False)
+            new_1_img = self._create_scroll_img(imgs[0], imgs[1], offset, rotation_axis, invert_scroll=True, from_top=True)
+            new_3_img = self._create_scroll_img(imgs[5], imgs[3], offset, rotation_axis, invert_scroll=False)
+            new_5_img = self._create_scroll_img(imgs[1], imgs[5], offset, rotation_axis, invert_scroll=False)
+            
+            new_2_img = imgs[2].rotate(angle, resample=Image.BICUBIC)
+            new_4_img = imgs[4].rotate(-angle, resample=Image.BICUBIC)
+
+            final_render.paste(new_0_img, (0, 0))
+            final_render.paste(new_1_img, (image.width, 0))
+            final_render.paste(new_2_img, (image.width*2, 0))
+            final_render.paste(new_3_img, (image.width*3, 0))
+            final_render.paste(new_4_img, (image.width*4, 0))
+            final_render.paste(new_5_img, (image.width*5, 0))
+
+            return final_render
             
         else:
             print(f"サポートされていない回転軸: {rotation_axis}")
             return Image.new('RGB', (image.width * 5, image.height), color=(0, 0, 0))
-
-
-def create_rotation_effect(image_path, rotation_type=RotationAxis.Y_INC):
-    """回転効果を作成して表示する"""
-    # LEDMatrixの初期化
-    led_matrix = LEDMatrix()
-    
-    # 回転エフェクトの初期化
-    rotation_effect = LEDRotationEffect(led_matrix)
-    
-    # 画像の読み込み
-    img = Image.open(image_path)
-    if img.size[0] != 64 or img.size[1] != 64:
-        img = img.resize((64, 64), resample=Image.BICUBIC)
-    
-    # 画像の連結
-    concatenated_img = Image.new('RGB', (img.width * 5, img.height))
-    for i in range(5):
-        concatenated_img.paste(img, (i * img.width, 0))
-    
-    # 回転効果の適用
-    result = rotation_effect.apply_rotation(img, concatenated_img, rotation_type)
-    
-    return result
-
-
-# メイン処理
-if __name__ == "__main__":
-    # テスト用のサンプルコード
-    result_image = create_rotation_effect("test/album_test.jpg", RotationAxis.SPIN)
-    print("回転効果が適用されました")

@@ -10,7 +10,7 @@ class LEDMatrix:
         self.options.chain_length = 5
         self.options.brightness = 100
 
-        self.options.show_refresh_rate = 1
+        self.options.show_refresh_rate = 0
         self.options.limit_refresh_rate_hz = 60
         self.framerate = 2  # 30Hz animation in refresh_rate_hz = 60
         self.options.gpio_slowdown = 5
