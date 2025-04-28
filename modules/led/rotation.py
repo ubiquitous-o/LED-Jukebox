@@ -99,14 +99,14 @@ class LEDRotationEffect:
 
         elif axis == RotationAxis.Y_INC or axis == RotationAxis.Y_DEC:
             if invert_scroll:
-                cropped_img = source.crop((offset, 0, source.width, source.height))
-                offsseted_img = target.crop((0, 0, offset, target.height))
+                cropped_img = target.crop((offset, 0, source.width, source.height))
+                offsseted_img = source.crop((0, 0, offset, target.height))
                 result_scroll_img = Image.new('RGB', (target.width, target.height))
                 result_scroll_img.paste(cropped_img, (0, 0))
                 result_scroll_img.paste(offsseted_img, (cropped_img.width, 0))
             else:
-                cropped_img = target.crop((source.width - offset, 0, source.width, source.height))
-                offsseted_img = source.crop((0, 0, target.width - offset, target.height))
+                cropped_img = source.crop((source.width - offset, 0, source.width, source.height))
+                offsseted_img = target.crop((0, 0, target.width - offset, target.height))
                 result_scroll_img = Image.new('RGB', (target.width, target.height))
                 result_scroll_img.paste(cropped_img, (0, 0))
                 result_scroll_img.paste(offsseted_img, (cropped_img.width, 0))
