@@ -1,7 +1,7 @@
 # LED-Jukebox
 
 ## Hardware Specifications
-- Raspberry Pi 4B
+- Raspberry Pi 4B, 64GB microSD, Raspberry pi os lite(64-bit)
 - [P2.5 64x64 RGB LED Matrix Panel](https://www.amazon.co.jp/dp/B07PK5J21V?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_2&th=1) x 5    
 - [5V 40A Power Supply](https://www.amazon.co.jp/dp/B0B74KV3BB?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
 - [8Ω 10W Speaker](https://akizukidenshi.com/catalog/g/g116600/) x4
