@@ -13,7 +13,17 @@
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
 
 ## Setup
-1. Install Raspotify as a User Service for using Audio Reactive Scripts.
+1. Clone this repository.
+    - `cd /usr/local/bin`
+    - `git clone https://github.com/ubiquitous-o/LED-Jukebox.git`
+    - venv install**あとで**
+    - Set your `.env` file in `/usr/local/bin/LED-Jukebox/.env`.
+        ```
+        SPOTIFY_CLIENT_ID=<your client id>
+        SPOTIFY_SECRET_KEY=<your secret key>
+        ```
+
+2. Install Raspotify as a User Service for using Audio Reactive Scripts.
     - Install Raspotify.
         - `sudo apt-get -y install curl && curl -sL https://dtcooper.github.io/raspotify/install.sh | sh`
         - If you use raspi lite os, install pipewire and libasound2-plgins.
@@ -24,52 +34,49 @@
     - Create User Service.
         - `mkdir -p ~/.config/systemd/user/`
         - `mkdir -p ~/.cache/raspotify`
-        - `vim ~/.config/systemd/user/raspotify.service`
-            ```
-            [Unit]
-            Description=Raspotify (Spotify Connect Client - User Service for %u)
-            After=network.target sound.target pipewire.service pipewire-pulse.service
-            Requires=pipewire.service pipewire-pulse.service
-            
-            [Service]
-            ExecStart=/usr/bin/librespot \
-                --name "Raspi-%u" \
-                --bitrate 320 \
-                --cache "%h/.cache/raspotify" \
-                --enable-volume-normalisation \
-                --backend pulseaudio
-            Restart=always
-            RestartSec=5
-            
-            [Install]
-            WantedBy=default.target
-            ```
+        - `cp service/raspotify.service ~/.config/systemd/user/raspotify.service`
         - `systemctl --user daemon-reload`
         - `systemctl --user enable raspotify.service`
         - `systemctl --user start raspotify.service`
     - Set Your Speaker.
         - `wpctl status`
-        - Remenber your Sinks ID
+        - Remember your Sinks ID
         - `DEFAULT_SINK_ID=<your id>`
         - `NODE_NAME=$(pw-cli info $DEFAULT_SINK_ID | grep 'node.name = ' | head -n 1 | cut -d '"' -f 2)`
         - `MONITOR_SOURCE_NAME="${NODE_NAME}.monitor"`
         - Check your monitor source name
             - `echo $MONITOR_SOURCE_NAME`
             - example: `alsa_output.usb-Apple_Computer__Inc._Speakers_p4000-00.analog-stereo.monitor`
-            - This monitor source name is used for audio reactive script. Please note it.
-    - Check for Playing and Recording at the Same Time for testing.
+            - **This monitor source name is used in audio reactive script. Please note it.**
+    - Check for Playing and Recording at the Same Time for Testing.
         - Play spotify music on raspi using Spotify Connect
         - Record playing music
             - `PULSE_SOURCE=$MONITOR_SOURCE_NAME arecord -D pulse -r 48000 -f S16_LE -c 2 output.wav`
         
-    - Set `handler.sh` as a Librespot Event Script
-    - https://github.com/dtcooper/raspotify/wiki/How-To:-Listen-To-Librespot-Events
-2. Install rpi-rgb-led-matrix
+3. Install rpi-rgb-led-matrix
     - Refer to this guide to install the Python bindings: [python bindings](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/bindings/python)
+    - Build the python bindings:
+        - `git clone https://github.com/hzeller/rpi-rgb-led-matrix.git`
+        - `cd rpi-rgb-led-matrix/bindings/python/`
+        - `sudo apt-get update && sudo apt-get install python3-dev cython3 -y`
+        - `make build-python` 
     - Install `rpi-rgb-led-matrix` into your venv:
+        - `python -m venv venv`
+        - `source venv/bin/activate`
+        - `pip install .`
+    - Set `dtparam=audio=off` in `/boot/firmware/config.txt` file.
+        - `sudo vim /boot/firmware/config.txt`
+            - example: `dtparam=audio=off`
+    - Add snd_bcm2835 to blacklist
         ```bash
-        source venv/bin/activate
-        cd rpi-rgb-led-matrix/bindings/python
-        pip install .
-        ```
+        cat <<EOF | sudo tee /etc/modprobe.d/blacklist-rgb-matrix.conf
+        blacklist snd_bcm2835
+        EOF
 
+        sudo update-initramfs -u
+        ```
+    - Set `isolcpus=3` in the end of `/boot/firmware/cmdline.txt` file.
+        - `sudo vim /boot/firmware/cmdline.txt`
+            - example:`console=serial0,115200 console=tty1 root=PARTUUID=2b5c324a-02 rootfstype=ext4 fsck.repair=yes rootwait cfg80211.ieee80211_regdom=JP isolcpus=3`
+    - Reboot your pi.
+        - `sudo reboot`

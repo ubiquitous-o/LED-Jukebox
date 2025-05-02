@@ -1,0 +1,19 @@
+[Unit]
+Description=Raspotify (Spotify Connect Client - User Service for %u)
+After=network.target sound.target pipewire.service pipewire-pulse.service
+Requires=pipewire.service pipewire-pulse.service
+
+[Service]
+ExecStart=/usr/bin/librespot \
+    --name "LED-Jukebox" \
+    --bitrate 320 \
+    --cache "%h/.cache/raspotify" \
+    --enable-volume-normalisation \
+    --backend pulseaudio \
+    --onevent /usr/local/bin/LED-Jukebox/raspotify_handler.sh
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
