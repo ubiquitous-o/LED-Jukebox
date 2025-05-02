@@ -62,12 +62,12 @@
         - `sudo apt-get update && sudo apt-get install python3-dev cython3 -y`
         - `make build-python` 
     - Install `rpi-rgb-led-matrix` into your venv:
+        - `cd /usr/local/bin/LED-Jukebox`
         - `python -m venv venv`
         - `source venv/bin/activate`
+        - `cd rpi-rgb-led-matrix/bindings/python/`
         - `pip install .`
     - Set `dtparam=audio=off` in `/boot/firmware/config.txt` file.
-        - `sudo vim /boot/firmware/config.txt`
-            - example: `dtparam=audio=off`
     - Add snd_bcm2835 to blacklist
         ```bash
         cat <<EOF | sudo tee /etc/modprobe.d/blacklist-rgb-matrix.conf
