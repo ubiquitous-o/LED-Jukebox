@@ -18,6 +18,7 @@
     - `git clone https://github.com/ubiquitous-o/LED-Jukebox.git`
     - venv install**あとで**
     - Set your `.env` file in `/usr/local/bin/LED-Jukebox/.env`.
+      - Get your Spotify API credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
         ```
         SPOTIFY_CLIENT_ID=<your client id>
         SPOTIFY_SECRET_KEY=<your secret key>
