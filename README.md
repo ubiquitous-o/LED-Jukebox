@@ -15,7 +15,10 @@
 ## Setup
 1. Install Raspotify as a User Service for using Audio Reactive Scripts.
     - Install Raspotify.
-    - Stop and Disable.
+        - `sudo apt-get -y install curl && curl -sL https://dtcooper.github.io/raspotify/install.sh | sh`
+        - If you use raspi lite os, install pipewire and libasound2-plgins.
+            - `sudo apt-get install pipewire libasound2-plugins`
+    - Stop and Disable Raspotify Service.
         - `sudo systemctl stop raspotify.service`
         - `sudo systemctl disable raspotify.service`
     - Create User Service.
@@ -25,21 +28,16 @@
             ```
             [Unit]
             Description=Raspotify (Spotify Connect Client - User Service for %u)
-            # PipeWireが起動した後に開始するように依存関係を設定
             After=network.target sound.target pipewire.service pipewire-pulse.service
             Requires=pipewire.service pipewire-pulse.service
             
             [Service]
-            # Raspotify がインストールした librespot を使用
-            # パスは which librespot で確認可
             ExecStart=/usr/bin/librespot \
                 --name "Raspi-%u" \
                 --bitrate 320 \
                 --cache "%h/.cache/raspotify" \
-                --enable-volume-normalisation
-                # --- 他に必要なオプションがあればここに追加 ---
-                # 例: --username YOUR_USERNAME --password YOUR_PASSWORD
-            
+                --enable-volume-normalisation \
+                --backend pulseaudio
             Restart=always
             RestartSec=5
             
@@ -55,9 +53,11 @@
         - `DEFAULT_SINK_ID=<your id>`
         - `NODE_NAME=$(pw-cli info $DEFAULT_SINK_ID | grep 'node.name = ' | head -n 1 | cut -d '"' -f 2)`
         - `MONITOR_SOURCE_NAME="${NODE_NAME}.monitor"`
-           - example: `MONITOR_SOURCE_NAME="alsa_output.usb-Apple_Computer__Inc._Speakers_p4000-00.analog-stereo.monitor"`
-          
-    - Check for Playing and Recording at the Same Time.
+        - Check your monitor source name
+            - `echo $MONITOR_SOURCE_NAME`
+            - example: `alsa_output.usb-Apple_Computer__Inc._Speakers_p4000-00.analog-stereo.monitor`
+            - This monitor source name is used for audio reactive script. Please note it.
+    - Check for Playing and Recording at the Same Time for testing.
         - Play spotify music on raspi using Spotify Connect
         - Record playing music
             - `PULSE_SOURCE=$MONITOR_SOURCE_NAME arecord -D pulse -r 48000 -f S16_LE -c 2 output.wav`
