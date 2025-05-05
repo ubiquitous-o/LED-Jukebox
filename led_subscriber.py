@@ -8,6 +8,8 @@ import signal
 import sys
 import json
 import logging
+import random
+
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 from modules import config
@@ -166,34 +168,36 @@ def process_beat_message(message_data):
             
             # 各帯域のビート検出状態に応じて回転エフェクトを適用
             if beats.get('Bass'):
-                logger.info("Bass beat detected, applying X axis rotation")
+                logger.info("Bass beat detected")
+                axis = [axis for axis in RotationAxis]
+                rotation_direction = random.choice(axis)
                 current_display = rotation_effect.apply_rotation(
                     original_image,
                     current_display,
-                    RotationAxis.X_INC,
+                    rotation_direction,
                     max_angle=90,
                     angle_step=10
                 )
                 
-            if beats.get('Mid'):
-                logger.info("Mid beat detected, applying Y axis rotation")
-                current_display = rotation_effect.apply_rotation(
-                    original_image,
-                    current_display,
-                    RotationAxis.Y_INC,
-                    max_angle=90,
-                    angle_step=10
-                )
+            # if beats.get('Mid'):
+            #     logger.info("Mid beat detected, applying Y axis rotation")
+            #     current_display = rotation_effect.apply_rotation(
+            #         original_image,
+            #         current_display,
+            #         RotationAxis.Y_INC,
+            #         max_angle=90,
+            #         angle_step=10
+            #     )
                 
-            if beats.get('Treble'):
-                logger.info("Treble beat detected, applying Z axis rotation")
-                current_display = rotation_effect.apply_rotation(
-                    original_image,
-                    current_display,
-                    RotationAxis.Z_INC,
-                    max_angle=90,
-                    angle_step=10
-                )
+            # if beats.get('Treble'):
+            #     logger.info("Treble beat detected, applying Z axis rotation")
+            #     current_display = rotation_effect.apply_rotation(
+            #         original_image,
+            #         current_display,
+            #         RotationAxis.Z_INC,
+            #         max_angle=90,
+            #         angle_step=10
+            #     )
                 
     except Exception as e:
         logger.error(f"Error processing beat message: {e}")
