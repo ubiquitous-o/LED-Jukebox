@@ -1,0 +1,11 @@
+[Unit]
+Description=Audio Beat Detection and MQTT Publishing Service
+After=network.target mosquitto.service
+
+[Service]
+ExecStart=/usr/local/bin/LED-Jukebox/venv/bin/python /usr/local/bin/LED-Jukebox/beats_publisher.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -23,21 +23,6 @@
         SPOTIFY_CLIENT_ID=<your client id>
         SPOTIFY_SECRET_KEY=<your secret key>
         ```
-    - Setup MQTT as a system service.
-        - `sudo apt-get install mosquitto mosquitto-clients`
-        - `sudo systemctl enable mosquitto.service`
-        - `sudo systemctl start mosquitto.service`
-        - Set MQTT broker
-            - `sudo cp service/led-jukebox-mqtt.service /etc/systemd/system/led-jukebox-mqtt.service`
-            - `sudo systemctl daemon-reload`
-            - `sudo systemctl enable led-jukebox-mqtt.service`
-            - `sudo systemctl start led-jukebox-mqtt.service`
-        - Set LED-Jukebox subscriber
-            - `sudo cp service/led-jukebox-led-matrix.service /etc/systemd/system/led-jukebox-led-matrix.service`
-            - `sudo systemctl daemon-reload`
-            - `sudo systemctl enable led-jukebox-led-matrix.service`
-            - `sudo systemctl start led-jukebox-led-matrix.service`
-
 
 2. Install Raspotify as a User Service for using Audio Reactive Scripts.
     - Install Raspotify.
@@ -95,3 +80,25 @@
             - example:`console=serial0,115200 console=tty1 root=PARTUUID=2b5c324a-02 rootfstype=ext4 fsck.repair=yes rootwait cfg80211.ieee80211_regdom=JP isolcpus=3`
     - Reboot your pi.
         - `sudo reboot`
+
+4. Setup LED-Jukebox
+    - Setup Services
+        - Setup MQTT as a system service.
+        - `sudo apt-get install mosquitto mosquitto-clients`
+        - `sudo systemctl enable mosquitto.service`
+        - `sudo systemctl start mosquitto.service`
+        - Set MQTT broker service
+            - `sudo cp service/led-jukebox-mqtt.service /etc/systemd/system/led-jukebox-mqtt.service`
+            - `sudo systemctl daemon-reload`
+            - `sudo systemctl enable led-jukebox-mqtt.service`
+            - `sudo systemctl start led-jukebox-mqtt.service`
+        - Set LED matrix subscriber
+            - `sudo cp service/led-jukebox-led-matrix.service /etc/systemd/system/led-jukebox-led-matrix.service`
+            - `sudo systemctl daemon-reload`
+            - `sudo systemctl enable led-jukebox-led-matrix.service`
+            - `sudo systemctl start led-jukebox-led-matrix.service`
+        - Set Beats publisher
+            - `cp service/led-jukebox-beats.service ~/.config/systemd/user/led-jukebox-beats.service`
+            - `systemctl --user daemon-reload`
+            - `systemctl --user enable led-jukebox-beats.service`
+            - `systemctl --user start led-jukebox-beats.service`
