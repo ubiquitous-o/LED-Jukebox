@@ -4,4 +4,4 @@ echo $TRACK_ID
 
 cd /usr/local/bin/LED-Jukebox
 source venv/bin/activate
-python main.py "$TRACK_ID" "$PLAYER_EVENT"
+python track_publisher.py "$TRACK_ID" "$PLAYER_EVENT"

@@ -1,0 +1,11 @@
+[Unit]
+Description=LED Jukebox MQTT Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/LED-Jukebox/venv/bin/python /usr/local/bin/LED-Jukebox/mqtt_daemon.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

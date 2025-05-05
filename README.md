@@ -23,12 +23,27 @@
         SPOTIFY_CLIENT_ID=<your client id>
         SPOTIFY_SECRET_KEY=<your secret key>
         ```
+    - Setup MQTT as a system service.
+        - `sudo apt-get install mosquitto mosquitto-clients`
+        - `sudo systemctl enable mosquitto.service`
+        - `sudo systemctl start mosquitto.service`
+        - Set MQTT broker
+            - `sudo cp service/led-jukebox-mqtt.service /etc/systemd/system/led-jukebox-mqtt.service`
+            - `sudo systemctl daemon-reload`
+            - `sudo systemctl enable led-jukebox-mqtt.service`
+            - `sudo systemctl start led-jukebox-mqtt.service`
+        - Set LED-Jukebox subscriber
+            - `sudo cp service/led-jukebox-led-matrix.service /etc/systemd/system/led-jukebox-led-matrix.service`
+            - `sudo systemctl daemon-reload`
+            - `sudo systemctl enable led-jukebox-led-matrix.service`
+            - `sudo systemctl start led-jukebox-led-matrix.service`
+
 
 2. Install Raspotify as a User Service for using Audio Reactive Scripts.
     - Install Raspotify.
         - `sudo apt-get -y install curl && curl -sL https://dtcooper.github.io/raspotify/install.sh | sh`
-        - If you use raspi lite os, install pipewire and libasound2-plgins.
-            - `sudo apt-get install pipewire libasound2-plugins`
+        - Install some audio libraries.
+            - `sudo apt-get install pipewire libasound2-plugins libportaudio2 portaudio19-dev`
     - Stop and Disable Raspotify Service.
         - `sudo systemctl stop raspotify.service`
         - `sudo systemctl disable raspotify.service`
@@ -48,7 +63,6 @@
         - Check your monitor source name
             - `echo $MONITOR_SOURCE_NAME`
             - example: `alsa_output.usb-Apple_Computer__Inc._Speakers_p4000-00.analog-stereo.monitor`
-            - **This monitor source name is used in audio reactive script. Please note it.**
     - Check for Playing and Recording at the Same Time for Testing.
         - Play spotify music on raspi using Spotify Connect
         - Record playing music

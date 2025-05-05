@@ -1,0 +1,11 @@
+[Unit]
+Description=LED Matrix Subscriber Service
+After=network.target mosquitto.service
+
+[Service]
+ExecStart=sudo /usr/local/bin/LED-Jukebox/venv/bin/python /usr/local/bin/LED-Jukebox/led_subscriber.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
