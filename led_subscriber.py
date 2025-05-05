@@ -25,7 +25,7 @@ options = RGBMatrixOptions()
 options.rows = 64
 options.cols = 64
 options.chain_length = 5
-options.brightness = 80
+options.brightness = 100
 options.gpio_slowdown = 5
 options.hardware_mapping = 'regular'
 options.limit_refresh_rate_hz = 60
@@ -165,7 +165,6 @@ def process_beat_message(message_data):
                 
             # ビート情報を取得
             beats = message_data.get('beats', {})
-            
             # 各帯域のビート検出状態に応じて回転エフェクトを適用
             if beats.get('Bass'):
                 logger.info("Bass beat detected")

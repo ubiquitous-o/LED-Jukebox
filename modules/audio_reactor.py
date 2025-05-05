@@ -41,7 +41,7 @@ class AudioReactor:
         
         # 周波数帯域の設定（デフォルト値またはカスタム値）
         self.freq_bands = freq_bands or {
-            "Bass":   (50, 150),     # 低域 (キックなど)
+            "Bass":   (50, 100),     # 低域 (キックなど)
             "Mid":    (500, 2000),   # 中域 (スネア、ボーカルの一部など)
             "Treble": (4000, 10000), # 高域 (ハイハット、シンバルなど)
         }
@@ -54,7 +54,7 @@ class AudioReactor:
             "Treble": 3.0,
         }
         self.min_energy_threshold = min_energy_threshold or {
-            "Bass":   1e-6,
+            "Bass":   1e-2,
             "Mid":    5e-7,
             "Treble": 1e-7,
         }
