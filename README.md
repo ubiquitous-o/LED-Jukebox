@@ -97,8 +97,16 @@
             - `sudo systemctl daemon-reload`
             - `sudo systemctl enable led-jukebox-led-matrix.service`
             - `sudo systemctl start led-jukebox-led-matrix.service`
-        - Set Beats publisher
+        - Set Beats publisher as a user service.
             - `cp service/led-jukebox-beats.service ~/.config/systemd/user/led-jukebox-beats.service`
             - `systemctl --user daemon-reload`
             - `systemctl --user enable led-jukebox-beats.service`
             - `systemctl --user start led-jukebox-beats.service`
+        - Auto login setting
+            - `sudo vim  /etc/systemd/system/getty.target.wants/getty@tty1.service`
+                ```
+                #ExecStart=-/sbin/agetty -o '-p -- \\u' --noclear - $TERM
+                ExecStart=-/sbin/agetty --autologin <your user name> --noclear %I $TERM
+                ```
+            - `sudo systemctl daemon-reload`
+            - `sudo reboot`
