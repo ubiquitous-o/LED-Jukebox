@@ -56,8 +56,13 @@ class HeadlessCubeRenderer:
         glViewport(0, 0, self.width, self.height)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LESS)
+        # 裏面カリングを有効にする
+        glEnable(GL_CULL_FACE)
+        glCullFace(GL_BACK) # 裏面をカリング対象とする
+        glFrontFace(GL_CCW) # 反時計回りを表面とする (デフォルト)
+        # glDisable(GL_CULL_FACE) # 明示的にカリングを無効化
         glClearColor(0.1, 0.1, 0.1, 1.0) # 背景色を少し明るくして、黒との区別をしやすくする
-        glDisable(GL_CULL_FACE) # 明示的にカリングを無効化
+
         check_gl_error("GL Context Setup")
 
 
@@ -193,13 +198,14 @@ class HeadlessCubeRenderer:
             1.0, 1.0,  0.0, 1.0,  0.0, 0.0,  1.0, 0.0,
         ], dtype=np.float32)
 
+        # インデックス (CCW winding order from outside)
         indices = np.array([
-             0,  1,  2,   2,  3,  0,  # 前面
-             4,  5,  6,   6,  7,  4,  # 背面
-             8,  9, 10,  10, 11,  8,  # 上面
-            12, 13, 14,  14, 15, 12,  # 下面
-            16, 17, 18,  18, 19, 16,  # 右面
-            20, 21, 22,  22, 23, 20,  # 左面
+             0,  1,  2,   2,  3,  0,  # 前面 (Front Z+) - CCW: Correct
+             4,  7,  6,   6,  5,  4,  # 背面 (Back Z-) - CCW: Corrected
+             8,  9, 10,  10, 11,  8,  # 上面 (Top Y+) - CCW: Correct
+            12, 15, 14,  14, 13, 12,  # 下面 (Bottom Y-) - CCW: Corrected
+            16, 17, 18,  18, 19, 16,  # 右面 (Right X+) - CCW: Correct
+            20, 23, 22,  22, 21, 20,  # 左面 (Left X-) - CCW: Corrected
         ], dtype=np.uint16)
 
         self.vao = glGenVertexArrays(1)
@@ -264,7 +270,7 @@ class HeadlessCubeRenderer:
         glUseProgram(self.program)
 
         model = self._get_rotation_matrix(rotation_x, rotation_y, rotation_z)
-        view = self._get_view_matrix(0, 0, 2.5)
+        view = self._get_view_matrix(0, 0, 2.0)
         projection = self._get_projection_matrix(45.0, self.width / self.height, 0.1, 100.0)
 
         glUniformMatrix4fv(glGetUniformLocation(self.program, "model"), 1, GL_FALSE, model.T)

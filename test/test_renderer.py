@@ -58,11 +58,11 @@ def test_opengl_cube():
         concat_width = 64 * 5 
         concat_height = 64
         
-        for angle_deg in range(0, 360, 20): # 少しステップを大きく
+        for angle_deg in range(0, 800, 10): # 少しステップを大きく
             # キューブのレンダリング（異なる面を表示するには、カメラやモデルの向きを変える）
             # 例: 1枚目: 正面, 2枚目: 右面, ... など
             # ここでは単純に同じ回転でレンダリング
-            renderer.render(angle_deg,0,0)
+            renderer.render(0,angle_deg,0)
             cube_image_face = renderer.get_image() # キューブの現在のビューを取得
             
             if cube_image_face is None:
