@@ -110,3 +110,19 @@
                 ```
             - `sudo systemctl daemon-reload`
             - `sudo reboot`
+    
+
+- renderer settings
+sudo apt-get install -y build-essential python3-dev libgles2-mesa-dev mesa-utils
+sudo apt-get install -y libgles2-mesa-dev libegl1-mesa-dev libgbm-dev libdrm-dev mesa-utils
+Xvfb (X virtual framebuffer) を使用する: これが最も一般的な方法です。Xvfb は、実際の画面出力なしに動作する Xサーバーです。
+
+まず、Xvfb をインストールします (Raspberry Pi OS の場合):
+sudo apt-get update
+sudo apt-get install xvfb
+次に、Xvfb をバックグラウンドで起動します。例えば、ディスプレイ番号 :1 を使用する場合:
+Xvfb :1 -screen 0 1024x768x24 &
+そして、Python スクリプトを実行する前に、DISPLAY 環境変数を設定します:
+export DISPLAY=:1
+
+あるいは、Python スクリプトの冒頭で DISPLAY 環境変数を設定することもできます。
