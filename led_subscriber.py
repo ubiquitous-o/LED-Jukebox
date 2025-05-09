@@ -20,17 +20,6 @@ from modules.led.rotation import LEDRotationEffect, RotationAxis
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# RGBMatrix設定
-options = RGBMatrixOptions()
-options.rows = 64
-options.cols = 64
-options.chain_length = 5
-options.brightness = 100
-options.gpio_slowdown = 5
-options.hardware_mapping = 'regular'
-options.limit_refresh_rate_hz = 60
-framerate = 2  # 30Hz animation in refresh_rate_hz = 60
-
 try:
     # LEDマトリックスの初期化
     led_matrix = LEDMatrix()
