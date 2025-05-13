@@ -1,7 +1,9 @@
 import sys
 import os
 import time
-from PIL import Image
+from PIL import Image, ImageDraw
+from PIL import ImageFont
+
 
 # モジュール検索パスにプロジェクトのルートディレクトリを追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -15,82 +17,99 @@ def test_opengl_cube():
     print("OpenGLキューブテストを開始します...")
     
     renderer = None 
-    led_matrix_ctrl = None # matrix から led_matrix_ctrl に変更 (一貫性のため)
+    led_matrix_ctrl = None
 
     try:
         # 1. OpenGLレンダラーの初期化
         print("HeadlessCubeRendererを初期化します...")
-        # Xvfbなどの仮想ディスプレイが必要になる場合がある
-        # export DISPLAY=:0 や Xvfb :0 -screen 0 64x64x24 & などを試す
-        renderer = HeadlessCubeRenderer(width=64, height=64)
+        renderer = HeadlessCubeRenderer(
+            width=64, 
+            height=64, 
+        )
         print("HeadlessCubeRendererを初期化しました")
 
-        # テスト用の画像を読み込む
-        img_path = os.path.join(os.path.dirname(__file__), "album_test.jpg") # testディレクトリ内の画像を指定
-        if not os.path.exists(img_path):
-            print(f"警告: テスト画像が見つかりません: {img_path}。ダミー画像を使用します。")
-            img = Image.new("RGB", (64, 64), "blue") # ダミー画像
-        else:
-            img = Image.open(img_path)
-        
-        if img.width != 64 or img.height != 64:
-            img = img.resize((64, 64), Image.Resampling.LANCZOS)
-        print("テスト画像の読み込み/準備が完了しました")
-        
-        # テクスチャを設定
-        renderer.set_texture(img)
+        img = Image.new("RGB", (64, 64)) # テスト用に黒い画像を作成
+        imgs = []
+        for i in range(6):
+            tmp = img.copy()
+            background_colors = ["red", "green", "blue", "yellow", "purple", "orange"]
+            tmp.paste(background_colors[i], [0, 0, tmp.width, tmp.height])
+            draw = ImageDraw.Draw(tmp)
+            text = str(i+1)
+            font_size = 20  # 文字サイズを指定
+            font = ImageFont.truetype("test/Courier.ttc", font_size)  # フォントを指定 (適切なフォントファイルを指定してください)
+            text_bbox = draw.textbbox((0, 0), text, font=font)
+            text_size = (text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1])
+            text_position = ((tmp.width - text_size[0]) // 2, (tmp.height - text_size[1]) // 2)
+            draw.text(text_position, text, fill="black", font=font)
+            imgs.append(tmp)
+
+        concat_img = Image.new("RGB", (img.width * 6, img.height))
+        for i in range(6):
+            concat_img.paste(imgs[i], (i * img.width, 0))
+        # concat_img.save("test/concat_img.png") # 連結画像を保存 (デバッグ用)
+        renderer.set_panorama_texture(concat_img) # 6面すべて同じ画像を使用
         print("テクスチャを設定しました")
 
         # 2. LEDマトリックスの初期化
         print("LEDマトリックスを初期化します...")
-        led_matrix_obj = LEDMatrix() # LEDMatrix オブジェクトを作成
-        led_matrix_ctrl = led_matrix_obj.matrix # matrix コントローラーを取得
+        led_matrix_obj = LEDMatrix()
+        led_matrix_ctrl = led_matrix_obj.matrix
         if led_matrix_ctrl is None:
             raise RuntimeError("LEDマトリックスの取得に失敗しました。rpi-rgb-led-matrixライブラリが正しくセットアップされているか確認してください。")
         print("LEDマトリックスを初期化しました")
         
-        # 回転アニメーションを実行
-        print("キューブの回転アニメーションを開始します...")
-        
-        # LEDパネルが5枚ある場合、キューブの異なる面を表示するなどの工夫が必要
-        # ここでは、単純に同じ画像を5枚連結して表示する例を維持
-        # 実際には、キューブの各面をレンダリングし、それらを配置する必要がある
-        concat_width = 64 * 5 
-        concat_height = 64
-        
-        for angle_deg in range(0, 800, 10): # 少しステップを大きく
-            # キューブのレンダリング（異なる面を表示するには、カメラやモデルの向きを変える）
-            # 例: 1枚目: 正面, 2枚目: 右面, ... など
-            # ここでは単純に同じ回転でレンダリング
-            renderer.render(0,angle_deg,0)
-            cube_image_face = renderer.get_image() # キューブの現在のビューを取得
+        print("アニメーションを開始します (キューブ全体を回転)...")
+        for angle_deg in range(0, 360, 1): # 1周分、5度刻み
             
-            if cube_image_face is None:
-                print("警告: renderer.get_image() から None が返されました。")
-                continue
+            
+            stitched_face_images = renderer.render_cube_to_stitched_image(
+                texture_rotation_axis=HeadlessCubeRenderer.ROTATION_AXIS_X,
+                texture_rotation_angle_deg=angle_deg
+            )
+            filename = f"stitched_face_images_{angle_deg}.png"
+            dirpath = os.path.join("output/" + filename)
+            # stitched_face_images = stitched_face_images.crop((0, 0, stitched_face_images.width - img.width, stitched_face_images.height))
+            stitched_face_images.save(dirpath)
 
-            # 5つのLEDパネルに表示する画像を生成
-            # TODO: ここでキューブの5つの異なる面をレンダリングし、配置するロジックが必要
-            #       現在の実装では、同じ面を5つ並べているだけ
-            # デバッグ用に最初のフレームを保存
-            # if angle_deg == 100:
-            #     try:
-            #         cube_image_face.save("/tmp/debug_cube_face.png")
-            #         print("デバッグ画像 debug_cube_face.png を保存しました。")
-            #     except Exception as e_save:
-            #         print(f"デバッグ画像の保存に失敗しました: {e_save}")
+            print(f"angle_deg: {angle_deg}")
+            if stitched_face_images:
+                led_matrix_ctrl.SetImage(stitched_face_images.convert("RGB"))
+            else:
+                print(f"警告: render_cube_to_stitched_image がNoneを返しました。")
+            
+            time.sleep(0.01)
 
-            concat_img = Image.new('RGB', (concat_width, concat_height))
-            for i in range(5):
-                # 異なる面を表示するには、ここで renderer.render() を異なるパラメータで呼び出し、
-                # renderer.get_image() を再度呼び出す必要がある。
-                # 例: renderer.render_face(i, angle_deg) のようなメソッドを renderer に追加する
-                concat_img.paste(cube_image_face, (i * 64, 0)) 
+        # for angle_deg in range(0, 360, 5): # 1周分、5度刻み
+
+        #     # 連結された画像を取得 (面の順序を渡す必要がなくなる)
+        #     stitched_face_images = renderer.render_cube_to_stitched_image(
+        #         texture_effect_rot_x=0,
+        #         texture_effect_rot_y=angle_deg, # Y軸回転のみ
+        #         texture_effect_rot_z=0
+        #     )
+        #     if stitched_face_images:
+        #         led_matrix_ctrl.SetImage(stitched_face_images.convert("RGB"))
+        #     else:
+        #         print(f"警告: render_cube_to_stitched_image がNoneを返しました。")
             
-            led_matrix_ctrl.SetImage(concat_img.convert("RGB")) # RGBに変換
-            time.sleep(0.05)
+        #     time.sleep(0.01) 
+
+        # for angle_deg in range(0, 360, 5): # 1周分、5度刻み
+
+        #     # 連結された画像を取得 (面の順序を渡す必要がなくなる)
+        #     stitched_face_images = renderer.render_cube_to_stitched_image(
+        #         texture_effect_rot_x=0,
+        #         texture_effect_rot_y=0, # Y軸回転のみ
+        #         texture_effect_rot_z=angle_deg
+        #     )
+        #     if stitched_face_images:
+        #         led_matrix_ctrl.SetImage(stitched_face_images.convert("RGB"))
+        #     else:
+        #         print(f"警告: render_cube_to_stitched_image がNoneを返しました。")
             
-        print("回転アニメーションが完了しました")
+        #     time.sleep(0.01) 
+        # print("アニメーションが完了しました")
         
     except Exception as e:
         print(f"テスト実行中にエラーが発生しました: {e}")

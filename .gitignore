@@ -1,6 +1,6 @@
 rpi-rgb-led-matrix
 pyopengl
-
+output
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
