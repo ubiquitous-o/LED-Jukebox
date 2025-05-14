@@ -1,0 +1,3 @@
+[submodule "modules/LED-Jukebox-Visualizer"]
+	path = modules/LED-Jukebox-Visualizer
+	url = https://github.com/ubiquitous-o/LED-Jukebox-Visualizer.git
