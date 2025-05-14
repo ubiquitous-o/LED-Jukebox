@@ -4,13 +4,14 @@ import time
 from PIL import Image, ImageDraw
 from PIL import ImageFont
 
-
-# モジュール検索パスにプロジェクトのルートディレクトリを追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# モジュールをインポート
-from modules.led.led_matrix import LEDMatrix
-from led_renderer import HeadlessCubeRenderer # クラス名を変更
+from modules.led_matrix import LEDMatrix
+
+import importlib
+led_jukebox_renderer = importlib.import_module("modules.LED-Jukebox-Visualizer.renderer.scroll_renderer")
+
+from led_jukebox_renderer import ScrollRenderer, RotationAxis
 
 def test_opengl_cube():
     """OpenGLキューブをLEDマトリックスに表示するテスト"""
