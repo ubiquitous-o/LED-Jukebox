@@ -11,6 +11,8 @@
 ## Dependencies
 - [Raspotify](https://github.com/dtcooper/raspotify): Streams Spotify music using an open-source client for Spotify Connect on Raspberry Pi.
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
+- MQTT
+- LED-Jukebox-Visualizer
 
 ## Setup
 1. Clone this repository.
