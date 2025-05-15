@@ -119,7 +119,7 @@ def process_beat_message(message_data):
             if beats.get('Bass'):
                 logger.info("Bass beat detected")
                 axis = random.choice([led_jukebox_renderer.RotationAxis.X, led_jukebox_renderer.RotationAxis.Y, led_jukebox_renderer.RotationAxis.Z])
-                direction random.choice([-1, 1])
+                direction = random.choice([-1, 1])
                 start_deg = 0
                 end_deg = 90
                 step = 5
