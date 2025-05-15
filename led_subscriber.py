@@ -9,12 +9,16 @@ import sys
 import json
 import logging
 import random
+import os
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
 
 from modules import config
-from modules.led.led_matrix import LEDMatrix
-from modules.led.rotation import LEDRotationEffect, RotationAxis
+from modules.led_matrix import LEDMatrix
+# from modules.led.rotation import LEDRotationEffect, RotationAxis
+import importlib
+led_jukebox_renderer = importlib.import_module("modules.LED-Jukebox-Visualizer.renderer.scroll_renderer")
+import pyglet
 
 # ログ設定
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -26,7 +30,8 @@ try:
     matrix = led_matrix.matrix
     
     # 回転エフェクト処理クラスの初期化
-    rotation_effect = LEDRotationEffect(led_matrix)
+    os.environ['DISPLAY'] = ':1' 
+    renderer = led_jukebox_renderer.ScrollRenderer(64, 64, use_offscreen=True)
     
     logger.info("LED Matrix and rotation effect initialized successfully")
 except Exception as e:
@@ -35,43 +40,12 @@ except Exception as e:
 
 # 現在表示中の画像を管理するための変数
 current_display = None
-original_image = None  # 回転エフェクトの元になる元画像
-display_thread = None
-stop_display = False
 mqtt_client = None
 rotation_lock = threading.Lock()  # 回転処理の排他制御用ロック
 
-def display_image_loop():
-    """バックグラウンドスレッドで画像をスクロール表示するための関数"""
-    global stop_display, current_display
-    
-    if current_display is None:
-        return
-    
-    # ダブルバッファリング用のキャンバスを作成
-    double_buffer = matrix.CreateFrameCanvas()
-    
-    # 画像の幅と高さを取得
-    img_width, img_height = current_display.size
-    
-    # スクロール位置の初期化
-    xpos = 0
-    
-    # スクロール処理
-    while not stop_display:
-        # 位置を更新
-        xpos = (xpos + 1) % img_width
-        
-        # ダブルバッファに画像を描画（スクロール位置を考慮）
-        double_buffer.SetImage(current_display, -xpos)
-        double_buffer.SetImage(current_display, -xpos + img_width)
-        
-        # バッファを入れ替えて表示を更新
-        double_buffer = matrix.SwapOnVSync(double_buffer, framerate_fraction=framerate)
-
 def process_track_message(message_data):
     """トラック情報メッセージを処理する関数"""
-    global current_display, original_image, display_thread, stop_display
+    global current_display
     
     try:
         # event情報を取得
@@ -95,39 +69,33 @@ def process_track_message(message_data):
             if img.size[0] != 64 or img.size[1] != 64:
                 img = img.resize((64, 64), resample=Image.BICUBIC)
             
-            # オリジナル画像を保存（回転エフェクト用）
-            original_image = img.copy()
-            
             # 画像を横に5回連結
-            concatenated_img = Image.new('RGB', (img.width * 6, img.height))
+            concatenated_img = Image.new('RGBA', (img.width * 6, img.height))
             for i in range(6):
                 concatenated_img.paste(img, (i * img.width, 0))
             
-            # # 以前の表示スレッドを停止
-            # if display_thread and display_thread.is_alive():
-            #     stop_display = True
-            #     display_thread.join(timeout=1.0)  # タイムアウト付きで待機
-                
             # LEDマトリクスをクリア
             matrix.Clear()
             
+            renderer.set_panorama_texture(concatenated_img)
+            renderer.on_draw()  # FBOに描画
+            out_img = renderer.get_current_panorama_frame()
+            if out_img:
+                matrix.SetImage(out_img.convert("RGB"))
+            else:
+                logger.error("Failed to get current panorama frame")
+
             # 画像を保存
             current_display = concatenated_img.convert('RGB')
             
-            # # 表示維持用の新しいスレッドを開始
-            # stop_display = False
-            # display_thread = threading.Thread(target=display_image_loop)
-            # display_thread.daemon = True
-            # display_thread.start()
-            
-            # logger.info("Image displayed and scrolling")
-            
-        elif event == "stopped" or event == "paused":
-            # # スクロール停止
-            # if display_thread and display_thread.is_alive():
-            #     stop_display = True
-            #     display_thread.join(timeout=1.0)
-            
+
+        # elif event == "paused":
+        #     logger.info("Track paused")
+        #     matrix.Clear()
+        #     matrix.SetImage(current_display)
+
+        elif event == "stopped":
+            logger.info("Track stopped")
             # マトリックスをクリア（黒画面表示）
             matrix.Clear()
             black_image = Image.new('RGB', (matrix.width, matrix.height), color=(0, 0, 0))
@@ -141,54 +109,40 @@ def process_track_message(message_data):
     except Exception as e:
         logger.error(f"Error processing track message: {e}")
 
+
 def process_beat_message(message_data):
     """ビート検出メッセージを処理し、回転エフェクトを適用する関数"""
-    global current_display, original_image
-    
+    global current_deg, target_deg
     try:
-        # ロックを取得
         with rotation_lock:
-            if not current_display or not original_image:
-                logger.debug("No current image to apply rotation effect")
-                return
-                
-            # ビート情報を取得
             beats = message_data.get('beats', {})
-            # 各帯域のビート検出状態に応じて回転エフェクトを適用
             if beats.get('Bass'):
                 logger.info("Bass beat detected")
-                axis = [axis for axis in RotationAxis]
-                rotation_direction = random.choice(axis)
-                current_display = rotation_effect.apply_rotation(
-                    original_image,
-                    current_display,
-                    rotation_direction,
-                    max_angle=90,
-                    angle_step=10
-                )
-                
-            # if beats.get('Mid'):
-            #     logger.info("Mid beat detected, applying Y axis rotation")
-            #     current_display = rotation_effect.apply_rotation(
-            #         original_image,
-            #         current_display,
-            #         RotationAxis.Y_INC,
-            #         max_angle=90,
-            #         angle_step=10
-            #     )
-                
-            # if beats.get('Treble'):
-            #     logger.info("Treble beat detected, applying Z axis rotation")
-            #     current_display = rotation_effect.apply_rotation(
-            #         original_image,
-            #         current_display,
-            #         RotationAxis.Z_INC,
-            #         max_angle=90,
-            #         angle_step=10
-            #     )
-                
+                axis = random.choice([led_jukebox_renderer.RotationAxis.X, led_jukebox_renderer.RotationAxis.Y, led_jukebox_renderer.RotationAxis.Z])
+                direction random.choice([-1, 1])
+                start_deg = 0
+                end_deg = 90
+                step = 5
+                interval = 0.01
+                deg = start_deg
+                while deg < end_deg:
+                    logger.debug(f"Rotating {axis} to {deg} degrees")
+                    deg = min(deg + step, end_deg)
+                    renderer.rotate(axis, deg * direction)
+                    renderer.on_draw()
+                    out_img = renderer.get_current_panorama_frame()
+                    if out_img:
+                        matrix.SetImage(out_img.convert("RGB"))
+                    current_deg = deg
+                    time.sleep(interval)
+
+                current_display = out_img.convert('RGB')
+                renderer.set_panorama_texture(current_display)
+                renderer.on_draw()
+
     except Exception as e:
         logger.error(f"Error processing beat message: {e}")
+
 
 def on_connect(client, userdata, flags, rc, properties=None):
     """MQTTブローカーに接続した際のコールバック"""
@@ -248,12 +202,9 @@ def setup_mqtt_client():
 
 def signal_handler(sig, frame):
     """シグナルハンドラ関数"""
-    global stop_display, mqtt_client
+    global mqtt_client
     logger.info("Shutting down...")
-    
-    # 表示スレッドを停止
-    stop_display = True
-    
+        
     # マトリックスをクリア
     matrix.Clear()
     

@@ -58,7 +58,7 @@ def test_opengl_cube():
         import time
         def update(dt):
             current_deg = (update.deg + 2) % 360
-            renderer.rotate(led_jukebox_renderer.RotationAxis.X, -current_deg)
+            renderer.rotate(led_jukebox_renderer.RotationAxis.Z, -current_deg)
             renderer.on_draw()  # FBOに描画
             img = renderer.get_current_panorama_frame()  # FBOから画像取得
             if img:
@@ -72,7 +72,7 @@ def test_opengl_cube():
 
         update.deg = 0
 
-        pyglet.clock.schedule_interval(update, 1/30)
+        pyglet.clock.schedule_interval(update, 1/60) #60Hz
         pyglet.app.run()
         
     except Exception as e:
