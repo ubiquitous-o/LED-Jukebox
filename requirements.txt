@@ -1,0 +1,28 @@
+async-timeout==5.0.1
+blinker==1.9.0
+certifi==2025.4.26
+cffi==1.17.1
+charset-normalizer==3.4.2
+click==8.1.8
+Cython==3.1.0
+dotenv==0.9.9
+idna==3.10
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+numpy==2.2.5
+paho-mqtt==2.1.0
+pillow==11.2.1
+pycparser==2.22
+pyglet==2.1.6
+pyglm==2.8.2
+-e git+https://github.com/mcfletch/pyopengl.git@5dfca4745d3b124bb0020fb8b1f84b4579ae1739#egg=PyOpenGL
+-e git+https://github.com/mcfletch/pyopengl.git@5dfca4745d3b124bb0020fb8b1f84b4579ae1739#egg=PyOpenGL_accelerate&subdirectory=accelerate
+python-dotenv==1.1.0
+redis==6.0.0
+requests==2.32.3
+rgbmatrix==0.0.1
+sounddevice==0.5.1
+spotipy==2.25.1
+urllib3==2.4.0
+Werkzeug==3.1.3

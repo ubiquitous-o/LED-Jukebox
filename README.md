@@ -1,4 +1,8 @@
 # LED-Jukebox
+This is the LED Jukebox, an audio-reactive system with five LED panels and four speakers.
+![LED-Jukebox](image/sample.gif)
+
+[sample video is here](https://www.instagram.com/reel/DKE6UU8N7yy/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)
 
 ## Hardware Specifications
 - Raspberry Pi 4B, 64GB microSD, Raspberry pi os lite(64-bit)
@@ -6,19 +10,29 @@
 - [5V 40A Power Supply](https://www.amazon.co.jp/dp/B0B74KV3BB?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1)
 - [8Ω 10W Speaker](https://akizukidenshi.com/catalog/g/g116600/) x4
 - [10W+10W Stereo USB DAC Amplifier](https://akizukidenshi.com/catalog/g/g102404/)
-
+- 44 magnets(φ6mm x 3mm) for attaching LED panels and top plate to the main body.
+- [Ceiling outlet connector](https://www.amazon.co.jp/dp/B09XD5T959?ref=ppx_yo2ov_dt_b_fed_asin_title) for power supply.
+- 3D printed parts. Print the models in the `3d_models` directory using PLA or ABS filament.
+    - main_carrige.stl x1
+        - The main body of the jukebox.
+    - top_plate.stl x1
+        - The top plate of the jukebox. Holds ceiling outlet connecter.
+    - speaker_carriage.stl x1
+        - The speaker carriage. Holds four speakers.
+    - panel_adapter.stl x5
+        - The LED panel carriage. Holds five LED panels. Attaches to the main body using magnets.
 
 ## Dependencies
 - [Raspotify](https://github.com/dtcooper/raspotify): Streams Spotify music using an open-source client for Spotify Connect on Raspberry Pi.
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
 - MQTT: Used for communication between some components.
+- [PyOpenGL](https://github.com/mcfletch/pyopengl): Used for rendering the visualizer.
 - [LED-Jukebox-Visualizer](https://github.com/ubiquitous-o/LED-Jukebox-Visualizer/tree/f508b67ac83f24e6a895d195ace6519edb1c6f01): The Rendering Library for LED-Jukebox.
 
 ## Setup
 1. Clone this repository.
     - `cd /usr/local/bin`
     - `git clone --recursive https://github.com/ubiquitous-o/LED-Jukebox.git`
-    - venv install**あとで**
     - Set your `.env` file in `/usr/local/bin/LED-Jukebox/.env`.
       - Get your Spotify API credentials from [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
         ```
@@ -84,7 +98,7 @@
         - `sudo reboot`
 
 4. Setup LED-Jukebox
-    - Setup Services
+    - Setup System Services
         - Setup MQTT as a system service.
         - `sudo apt-get install mosquitto mosquitto-clients`
         - `sudo systemctl enable mosquitto.service`
@@ -114,17 +128,22 @@
             - `sudo reboot`
     
 
-- renderer settings
-sudo apt-get install -y build-essential python3-dev libgles2-mesa-dev mesa-utils
-sudo apt-get install -y libgles2-mesa-dev libegl1-mesa-dev libgbm-dev libdrm-dev mesa-utils
-Xvfb (X virtual framebuffer) を使用する: これが最も一般的な方法です。Xvfb は、実際の画面出力なしに動作する Xサーバーです。
-
-まず、Xvfb をインストールします (Raspberry Pi OS の場合):
-sudo apt-get update
-sudo apt-get install xvfb
-次に、Xvfb をバックグラウンドで起動します。例えば、ディスプレイ番号 :1 を使用する場合:
-Xvfb :1 -screen 0 1024x768x24 &
-そして、Python スクリプトを実行する前に、DISPLAY 環境変数を設定します:
-export DISPLAY=:1
-
-あるいは、Python スクリプトの冒頭で DISPLAY 環境変数を設定することもできます。
+5. Renderer Settings
+    - LED-Jukebox is rendered using OpenGL.
+        - `sudo apt-get install -y build-essential python3-dev libgles2-mesa-dev mesa-utils libgbm-dev libdrm-dev xvfb`
+    - Set gpu_memory in `/boot/firmware/config.txt` file.
+        - `sudo vim /boot/firmware/config.txt`
+            ```
+            gpu_mem=128
+            ```
+    - Install[ `pyopengl` and `pyopengl-accelerate`](https://github.com/mcfletch/pyopengl).
+        - Clone the repository.
+            - `git clone https://github.com/mcfletch/pyopengl.git`
+            - `cd /usr/local/bin/LED-Jukebox`
+            - `source venv/bin/activate`
+            - `cd pyopengl`
+            - `pip install -e .`
+            - `cd accelerate`
+            - `pip install -e .`
+    - Install python dependencies.
+        - `pip install -r requirements.txt`
