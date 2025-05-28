@@ -27,7 +27,7 @@ This is LED Jukebox, an audio-reactive system with five LED panels and four spea
 - [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix): Used for controlling the LED panels.
 - [MQTT](https://mqtt.org/): Used for communication between some components.
 - [PyOpenGL](https://github.com/mcfletch/pyopengl): Used for rendering the visualizer.
-- [LED-Jukebox-Visualizer](https://github.com/ubiquitous-o/LED-Jukebox-Visualizer/tree/f508b67ac83f24e6a895d195ace6519edb1c6f01): The rendering library for LED-Jukebox.
+- [LED-Jukebox-Visualizer](https://github.com/ubiquitous-o/LED-Jukebox-Visualizer): The rendering library for LED-Jukebox.
 
 ## Setup
 1. Clone this repository.
