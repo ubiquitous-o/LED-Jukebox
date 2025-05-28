@@ -10,7 +10,7 @@ This is LED Jukebox, an audio-reactive system with five LED panels and four spea
 - [5V 40A Power Supply](https://www.amazon.co.jp/dp/B0B74KV3BB?ref_=ppx_hzsearch_conn_dt_b_fed_asin_title_1&th=1) x1
 - [8Ω 10W Speaker](https://akizukidenshi.com/catalog/g/g116600/) x4
 - [10W+10W Stereo USB DAC Amplifier](https://akizukidenshi.com/catalog/g/g102404/) x1
-- [Neodymium magnets(φ6mm x 3mm)](https://jp.daisonet.com/products/4549131156621) for attaching LED panels and top plate to the main body. x44
+- [Neodymium magnets(φ6mm x 3mm)](https://jp.daisonet.com/products/4549131156621) for attaching LED panels and top plate to the main body. x48
 - [Ceiling outlet connector](https://www.amazon.co.jp/dp/B09XD5T959?ref=ppx_yo2ov_dt_b_fed_asin_title) for power supply. x1
 - 3D printed parts. Print the models in the `3d_models` directory.
     - main_carrige.stl x1
