@@ -1,5 +1,5 @@
 # LED Jukebox
-This is the LED Jukebox, an audio-reactive system with five LED panels and four speakers.
+This is LED Jukebox, an audio-reactive system with five LED panels and four speakers.
 ![LED-Jukebox](image/sample.gif)
 
 [sample video is here](https://www.instagram.com/reel/DKE6UU8N7yy/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==)
